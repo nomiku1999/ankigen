@@ -8,6 +8,11 @@ CSV_FILE = "chinese_words.csv"
 OUTPUT_FOLDER = "img"
 MEANING_COLUMN = "Meaning"
 VOCAB_COLUMN = "Vocab"
+PROMPT = """
+Img size 512x512.
+A clean, minimalist vector illustration of {interjection of surprise; Ah!; Oh!}, white background,
+ educational flashcard style without words."""
+
 
 if not os.path.exists(OUTPUT_FOLDER):
     os.makedirs(OUTPUT_FOLDER)

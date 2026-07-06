@@ -3,10 +3,9 @@ import asyncio
 import pandas as pd
 import edge_tts
 
-# 1. Cấu hình đường dẫn
-CSV_FILE = "chinese_words.csv"  # Thay bằng tên file CSV của bạn
-OUTPUT_FOLDER = "mp3"          # Thư mục sẽ chứa các file MP3
-VOCAB_COLUMN = "Vocab"         # Tên cột chứa chữ Hán trong file CSV của bạn
+CSV_FILE = r"C:\Users\Miku\Desktop\Anki_generate\word\chinese_words.csv"
+OUTPUT_FOLDER = r"C:\Users\Miku\Desktop\Anki_generate\voice\chinese"
+VOCAB_COLUMN = "Vocab"
 
 # Chọn giọng đọc tiếng Trung Phổ Thông (Mandarin)
 # Một số giọng hay: 

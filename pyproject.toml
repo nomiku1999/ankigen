@@ -10,4 +10,11 @@ dependencies = [
     "tqdm",
     "requests",
     "deep-translator",
+    "ollama",
+    "pydantic",
+    "diffusers",
+    "torch",
+    "transformers",
+    "accelerate",
+    "genanki",
 ]

@@ -1,59 +1,56 @@
 import os
 import torch
 import pandas as pd
-from diffusers import FluxPipeline
+from diffusers import SanaPipeline
 
-# 1. Cấu hình đường dẫn
-CSV_FILE = "chinese_words.csv"
-OUTPUT_FOLDER = "img"
+# watch -n 1 nvidia-smi
+CSV_FILE = "/home/miku/Code/AnkiGenerater/ankigen/word/chinese_words.csv"
+OUTPUT_FOLDER = "/home/miku/Code/AnkiGenerater/ankigen/img/chinese"
 MEANING_COLUMN = "Meaning"
 VOCAB_COLUMN = "Vocab"
-PROMPT = """
-Img size 512x512.
-A clean, minimalist vector illustration of {interjection of surprise; Ah!; Oh!}, white background,
- educational flashcard style without words."""
-
 
 if not os.path.exists(OUTPUT_FOLDER):
     os.makedirs(OUTPUT_FOLDER)
 
-# 2. Khởi tạo mô hình FLUX.1-schnell tối ưu cho RTX 3090
-print("Đang tải model Flux vào RTX 3090...")
-pipe = FluxPipeline.from_pretrained(
-    "black-forest-labs/FLUX.1-schnell", 
+# 2. Khởi tạo mô hình SANA (Thế hệ mới siêu tốc độ, tiết kiệm VRAM)
+print("Đang tải model SANA thế hệ mới vào RTX 3090...")
+pipe = SanaPipeline.from_pretrained(
+    "Efficient-Large-Model/Sana_600M_512px_diffusers", 
+    # variant="fp16",
+    # torch_dtype=torch.float16
     torch_dtype=torch.bfloat16
 )
-# Đẩy model lên GPU
-pipe.to("cuda") 
+# Đẩy model lên GPU và bật chế độ tối ưu bộ nhớ
+pipe.to("cuda")
 
-def generate_local_image(prompt, filename):
+def generate_local_image(meaning_text, filename):
     path = os.path.join(OUTPUT_FOLDER, filename)
     if os.path.exists(path):
-        return # Bỏ qua nếu ảnh đã tồn tại
+        return  # Bỏ qua nếu ảnh đã tồn tại
         
     try:
-        # Thêm phong cách vào prompt để ảnh đồng bộ và trực quan (VD: dạng minh họa cho trẻ em, sạch sẽ)
-        enhanced_prompt = f"A clean, minimalist vector illustration of {prompt}, white background, educational flashcard style"
-        
-        # Sinh ảnh (Flux-schnell chỉ cần 4 steps là rất đẹp)
+        # Tối ưu hóa prompt ngắn gọn, tập trung thẳng vào phong cách Flashcard tối giản
+        # enhanced_prompt = f"A clean, minimalist vector illustration of {meaning_text}, white background, educational flashcard style, no words, simple shapes."
+        enhanced_prompt = f"A clean, minimalist illustration of '{meaning_text}'"
+        # Sinh ảnh với SANA (Cực kỳ nhanh và chuẩn xác)
         image = pipe(
             prompt=enhanced_prompt,
-            guidance_scale=0.0,
-            num_inference_steps=4,
-            max_sequence_length=256
+            height=512,
+            width=512,
+            guidance_scale=5.0,       # Giúp mô hình bám sát ý nghĩa của từ hơn
+            num_inference_steps=16,   # Bước chạy tối ưu cho chất lượng ảnh sắc nét của SANA
         ).images[0]
         
-        # Resize về kích thước vừa phải để tối ưu dung lượng bộ thẻ Anki
-        image = image.resize((512, 512))
         image.save(path)
-        print(f"✓ Đã sinh ảnh cho: {filename}")
+        print(f"✓ Đã sinh ảnh cho: {filename}: '{meaning_text}'")
     except Exception as e:
-        print(f"✗ Lỗi khi sinh ảnh '{prompt}': {e}")
+        print(f"✗ Lỗi khi sinh ảnh cho nghĩa '{meaning_text}': {e}")
 
 def main():
     df = pd.read_csv(CSV_FILE)
     print(f"Bắt đầu sinh {len(df)} hình ảnh...")
     
+    test_count = 0
     for index, row in df.iterrows():
         vocab = str(row[VOCAB_COLUMN]).strip()
         meaning = str(row[MEANING_COLUMN]).strip()
@@ -62,7 +59,17 @@ def main():
             continue
             
         filename = f"{vocab}.jpg"
-        generate_local_image(meaning, filename)
+        
+        if ";" in meaning:
+            first_meaning = meaning.split(";")[0].strip()
+        else:
+            first_meaning = meaning
+        # Truyền cột "Meaning" (Tiếng Anh) vào để model hiểu và vẽ chính xác
+        generate_local_image(first_meaning, filename)
+        
+        test_count += 1
+        if test_count >= 20:  # Giới hạn thử nghiệm 10 từ đầu
+            break
 
 if __name__ == "__main__":
     main()

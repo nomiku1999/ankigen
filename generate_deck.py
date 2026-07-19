@@ -5,14 +5,14 @@ import pandas as pd
 MODEL_ID = 1984739201
 DECK_ID = 2026061701
 
-CSV_FILE = "/home/miku/Code/AnkiGenerater/ankigen/word/chinese_words_local_examples.csv"
-IMG_FOLDER = "/home/miku/Code/AnkiGenerater/ankigen/img/chinese"
+CSV_FILE = "/home/miku/Code/AnkiGenerater/ankigen/word/chinese_HSK.csv"
+IMG_FOLDER = "/home/miku/Code/AnkiGenerater/ankigen/HSK_images"
 VOCAB_AUDIO_FOLDER = "/home/miku/Code/AnkiGenerater/ankigen/voice/chinese"
 SENTENCE_AUDIO_FOLDER = "/home/miku/Code/AnkiGenerater/ankigen/voice/chinese_sentences"
 
 chinese_model = genanki.Model(
     MODEL_ID,
-    'Chinese Common 3000 Words Model',
+    'Chinese Common 4000 Words Model',
     fields=[
         {'name': 'Vocab'}, 
         {'name': 'Pinyin'}, 
@@ -147,7 +147,7 @@ chinese_model = genanki.Model(
     '''
 )
 
-my_deck = genanki.Deck(DECK_ID, '3000 Common Chinese Words with Sentences')
+my_deck = genanki.Deck(DECK_ID, '4000 Common Chinese Words with Sentences')
 actual_media_paths = []
 
 df = pd.read_csv(CSV_FILE)
@@ -158,16 +158,25 @@ for index, row in df.iterrows():
     meaning = str(row.get("Meaning", "")).strip()
     example = str(row.get("Example", "")).strip()
     example_meaning = str(row.get("Example_Meaning", row.get("ExampleMeaning", ""))).strip()
+    if not example_meaning or example_meaning == 'nan':
+        example_meaning = str(row.get("Translation", "")).strip()
     
     if not vocab or vocab == 'nan':
         continue
-        
+
+    if (not pinyin or pinyin == 'nan'
+        # or not meaning or meaning == 'nan'
+        or not example or example == 'nan'
+        or not example_meaning or example_meaning == 'nan'):
+        print(f"⚠️ Skipping row {index} due to missing essential data: Vocab='{vocab}', Pinyin='{pinyin}', Meaning='{meaning}', Example='{example}', ExampleMeaning='{example_meaning}'")
+        continue
+
     img_file = f"{vocab}.jpg"
     vocab_audio_file = f"{vocab}.mp3"
     sentence_audio_file = f"{vocab}_sentence.mp3"
     
-    if ";" in meaning:
-        meaning = meaning.split(";")[0].strip()
+    # if ";" in meaning:
+    #     meaning = meaning.split(";")[0].strip()
 
     field_example = example if example != 'nan' and example != '' else ''
     field_example_meaning = example_meaning if example_meaning != 'nan' and example_meaning != '' else ''

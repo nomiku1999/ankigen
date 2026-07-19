@@ -4,7 +4,7 @@ import pandas as pd
 import edge_tts
 
 # 1. Path Configurations
-CSV_FILE = "/home/miku/Code/AnkiGenerater/ankigen/word/chinese_words_local_examples.csv"
+CSV_FILE = "/home/miku/Code/AnkiGenerater/ankigen/word/chinese_extend.csv"
 
 # Separate folders for vocabulary words and full sentences
 VOCAB_OUTPUT_FOLDER = "/home/miku/Code/AnkiGenerater/ankigen/voice/chinese"

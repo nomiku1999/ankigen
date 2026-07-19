@@ -5,7 +5,8 @@ build/
 dist/
 wheels/
 *.egg-info
-
+*.zip
+*.apkg
 # Virtual environments
 .venv
 *.mp3

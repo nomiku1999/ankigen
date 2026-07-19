@@ -10,8 +10,8 @@ class TranslationExample(BaseModel):
     meaning: str
 
 # Configuration
-input_file = "/home/miku/Code/AnkiGenerater/ankigen/word/chinese_words.csv"
-output_file = "/home/miku/Code/AnkiGenerater/ankigen/word/chinese_words_local_examples.csv"
+input_file = "/home/miku/Code/AnkiGenerater/ankigen/deck_data.csv"
+output_file = "/home/miku/Code/AnkiGenerater/ankigen/word/chinese_HSK.csv"
 model_name = "qwen3.6:35b-a3b"
 #model_name = "qwen3.5:9b"
 # Load your CSV
@@ -36,12 +36,16 @@ def get_local_llm_example(vocab, pinyin, meaning):
     Act as a Chinese teacher. 
     Word: {vocab} | Pinyin: {pinyin} | Definition: {meaning}
     
-    Task: Create ONE short, simple, conversational Chinese example sentence using this word. Provide its English translation.
+    Task: Create ONE short, simple, conversational Chinese example sentence using this word. Provide its Vietnamese translation.
     
-    Rules: Short (under 12 chars). No complex grammar. No Pinyin inside the Chinese sentence.
+    Rules: 
+    1. Short (under 12 chars). 
+    2. No complex grammar. 
+    3. No Pinyin inside the Chinese sentence.
+    4. CRITICAL: The example sentence MUST contextually demonstrate the specific definition provided above. 
     
     Output JSON format only:
-    {{"example": "Chinese sentence", "meaning": "English translation"}}
+    {{"example": "Chinese sentence", "meaning": "Vietnamese translation"}}
     """
     try:
         # Requesting structured output from Ollama
@@ -66,10 +70,12 @@ for index, row in tqdm(df.iterrows(), total=len(df)):
     # Skip rows that are already completed (allows resuming if stopped)
     if pd.notna(row["Example"]) and row["Example"] != "":
         continue
-        
-    ex_cn, ex_en = get_local_llm_example(row["Vocab"], row["Pinyin"], row["Meaning"])
+
+    # print(f"\nProcessing row {index + 1}/{len(df)}: Word: {row['Word']}, Pinyin: {row['Pinyin']}, Meaning: {row['Meaning']}")
+    print(row)  
+    ex_cn, ex_en = get_local_llm_example(row["Word"], row["Pinyin"], row["Meaning"])
     
-    print(f"\nWord: {row['Vocab']}, Pinyin: {row['Pinyin']}, Meaning: {row['Meaning']}, Example: {ex_cn}, Translation: {ex_en}")
+    print(f"\nWord: {row['Word']}, Pinyin: {row['Pinyin']}, Meaning: {row['Meaning']}, Example: {ex_cn}, Translation: {ex_en}")
     df.at[index, "Example"] = ex_cn
     df.at[index, "Example_Meaning"] = ex_en
     
